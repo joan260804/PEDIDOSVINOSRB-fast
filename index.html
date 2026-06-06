@@ -1,0 +1,2065 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#1c1c1e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vinoteca">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icono.png">
+<link rel="icon" type="image/png" href="icons/icono.png">
+<title>Pedidos RB — Fast</title>
+
+<style>
+  :root {
+    --bg: #f8f6f2;
+    --bg2: #ffffff;
+    --bg3: #f0ede8;
+    --accent: #8b5e3c;
+    --accent2: #a8784f;
+    --dark: #1c1c1e;
+    --dark2: #3a3a3c;
+    --text: #1c1c1e;
+    --text2: #6e6e73;
+    --text3: #aeaeb2;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(139,94,60,0.25);
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
+    --shadow2: 0 8px 32px rgba(0,0,0,0.12);
+    --serif: Arial, sans-serif;
+    --sans: Arial, sans-serif;
+    --radius: 14px;
+    --header-h: 60px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; background:var(--bg); color:var(--text); font-family:var(--sans); overflow-x:hidden; }
+
+  /* HEADER */
+  header {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    height:var(--header-h);
+    background:rgba(248,246,242,0.94);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 1.25rem;
+  }
+  .logo { font-family:var(--serif); font-size:1.4rem; font-weight:600; color:var(--accent); letter-spacing:.01em; font-style:italic; }
+  .cart-btn {
+    position:relative; background:var(--accent); border:none; color:#fff;
+    width:42px; height:42px; border-radius:50%; cursor:pointer; font-size:1.1rem;
+    display:flex; align-items:center; justify-content:center; transition:all .2s;
+    box-shadow: 0 2px 8px rgba(139,94,60,0.3);
+  }
+  .cart-btn:active { transform:scale(.93); }
+  .cart-badge {
+    position:absolute; top:-4px; right:-4px;
+    background:var(--dark); color:#fff; font-size:11px; font-weight:600;
+    min-width:18px; height:18px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+    padding:0 4px; display:none;
+  }
+  .cart-badge.visible { display:flex; }
+
+  /* NAV PILLS */
+  .nav-wrap { position:sticky; top:var(--header-h); z-index:90; background:rgba(248,246,242,0.97); padding:.6rem 1.25rem; border-bottom:1px solid var(--border); backdrop-filter:blur(8px); display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; }
+  .nav-select-group { display:flex; flex-direction:column; gap:.2rem; flex:1; min-width:140px; }
+  .nav-label { font-size:.85rem; text-transform:uppercase; letter-spacing:.05em; color:var(--dark); font-weight:700; margin-bottom:.2rem; }
+  .nav-select {
+    width:100%; padding:.5rem .85rem; border-radius:10px; border:1px solid var(--border);
+    background:var(--bg2); color:var(--text); font-family:var(--sans); font-size:.82rem;
+    cursor:pointer; outline:none; box-shadow:var(--shadow); appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236e6e73' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right .75rem center;
+    padding-right:2rem; transition:border .2s;
+  }
+  .nav-select:focus { border-color:var(--border2); }
+  .nav-select.active-filter { border-color:var(--accent); color:var(--accent); font-weight:600; background-color:#fdf8f4; }
+
+  /* HERO */
+  .hero {
+    margin-top: var(--header-h);
+    padding: 0;
+    line-height:0;
+  }
+  .hero img { width:100%; display:block; object-fit:cover; max-height:420px; }
+
+  /* SEARCH */
+  .search-wrap { padding:.75rem 1.25rem; }
+  .search-input {
+    width:100%; background:var(--bg2); border:1px solid var(--border); color:var(--text);
+    padding:.7rem 1rem .7rem 2.6rem; border-radius:50px; font-family:var(--sans); font-size:.875rem;
+    outline:none; transition:all .2s; box-shadow:var(--shadow); font-weight:400;
+  }
+  .search-input:focus { border-color:var(--border2); box-shadow:0 0 0 3px rgba(139,94,60,0.1); }
+  .search-input::placeholder { color:var(--text3); }
+  .search-wrap { position:relative; padding:.75rem 1.25rem; }
+  .search-icon { position:absolute; left:2.1rem; top:50%; transform:translateY(-50%); color:var(--text3); font-size:.9rem; pointer-events:none; }
+
+  /* PRODUCTS GRID */
+  .products { padding:1rem 1rem 6rem; }
+  .section-title { font-family:var(--serif); font-size:1.25rem; font-weight:400; font-style:italic; color:var(--dark); margin:.5rem .25rem .85rem; padding-top:.75rem; border-top:1px solid var(--border); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); gap:.75rem; }
+
+  /* PRODUCT CARD */
+  .card {
+    background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius);
+    overflow:hidden; cursor:pointer; transition:transform .2s, box-shadow .2s; position:relative;
+    box-shadow:var(--shadow);
+  }
+  .card:active { transform:scale(.97); }
+  .card:hover { box-shadow:var(--shadow2); transform:translateY(-2px); }
+  .card-img-wrap { aspect-ratio:3/4; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; padding:.5rem; }
+  .card-img-wrap img { width:100%; height:100%; object-fit:contain; transition:transform .3s; }
+  .card:hover .card-img-wrap img { transform:scale(1.04); }
+  .card-img-placeholder { font-size:3rem; opacity:.2; }
+  .card-body { padding:.6rem .5rem .5rem; display:flex; flex-direction:column; }
+  .card-name { font-family:var(--serif); font-size:.83rem; font-weight:400; color:var(--dark); line-height:1.2; margin-bottom:.15rem; font-style:italic; }
+  .card-sub { font-size:.62rem; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:.35rem; font-weight:500; height:1rem; overflow:hidden; }
+  .card-bottom { display:flex; align-items:center; justify-content:space-between; margin-top:auto; }
+  .card-price { font-family:var(--serif); font-size:.92rem; font-weight:600; color:var(--accent); }
+  .add-btn {
+    width:26px; height:26px; border-radius:50%; background:var(--accent); border:none;
+    color:#fff; font-size:.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:all .2s; flex-shrink:0; box-shadow:0 2px 6px rgba(139,94,60,0.3);
+  }
+  .add-btn:active { background:var(--accent2); transform:scale(.9); }
+  .badge-category {
+    position:absolute; top:.5rem; left:.5rem;
+    background:rgba(255,255,255,.92); border:1px solid var(--border); color:var(--accent);
+    font-size:.58rem; text-transform:uppercase; letter-spacing:.07em;
+    padding:.18rem .45rem; border-radius:50px; font-weight:600;
+  }
+
+  /* EMPTY STATE */
+  .empty { text-align:center; padding:3rem 1rem; color:var(--text2); }
+  .empty .icon { font-size:3rem; margin-bottom:1rem; opacity:.3; }
+  .empty p { font-family:var(--serif); font-style:italic; font-size:1.1rem; color:var(--text2); }
+
+  /* DETAIL MODAL */
+  .overlay { position:fixed; inset:0; z-index:200; display:none; align-items:center; justify-content:center; padding:1rem; }
+  .overlay.open { display:flex; }
+  .overlay-bg { position:absolute; inset:0; background:rgba(0,0,0,.65); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+  .sheet {
+    position:relative; z-index:1;
+    background:var(--bg2); border-radius:20px;
+    width:min(420px,95vw); max-height:95vh; overflow-y:auto; scrollbar-width:none;
+    box-shadow:0 24px 60px rgba(0,0,0,0.3);
+    animation: popIn .3s cubic-bezier(.32,.72,0,1);
+  }
+  @keyframes popIn { from { transform:scale(.9); opacity:0; } to { transform:scale(1); opacity:1; } }
+  .sheet::-webkit-scrollbar { display:none; }
+  .overlay.open .sheet { transform:none; }
+  .sheet-handle { display:none; }
+  .sheet-img { width:100%; max-height:360px; object-fit:contain; background:var(--bg3); display:block; padding:2rem 2.5rem; }
+  .sheet-img-placeholder { width:100%; height:300px; background:var(--bg3); display:flex; align-items:center; justify-content:center; font-size:5rem; opacity:.2; }
+  .sheet-body { padding:1.25rem 1.25rem 2rem; }
+  .sheet-category { font-size:.72rem; text-transform:uppercase; letter-spacing:.1em; color:var(--gold); margin-bottom:.4rem; }
+  .sheet-name { font-family:var(--serif); font-size:1.9rem; font-weight:400; font-style:italic; color:var(--cream); line-height:1.2; margin-bottom:.5rem; }
+  .sheet-desc { font-size:.875rem; color:var(--text2); line-height:1.65; margin-bottom:1.25rem; }
+  .sheet-price { font-family:var(--serif); font-size:2rem; font-weight:600; color:var(--gold); margin-bottom:1.25rem; }
+  .sheet-meta { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:1.25rem; }
+  .meta-tag { background:var(--bg3); border:1px solid var(--border); color:var(--text2); font-size:.72rem; padding:.25rem .6rem; border-radius:50px; }
+  .qty-row { display:flex; align-items:center; gap:1rem; margin-bottom:1.25rem; }
+  .qty-btn { width:36px; height:36px; border-radius:50%; border:1px solid var(--border2); background:none; color:var(--gold); font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .qty-val { font-family:var(--serif); font-size:1.3rem; min-width:2rem; text-align:center; color:var(--cream); }
+  .add-to-cart-btn {
+    width:100%; padding:1rem; border-radius:14px; background:linear-gradient(135deg,#6b3f1f,#8b5e3c);
+    border:none; color:#fff; font-family:var(--sans); font-size:1rem; font-weight:600;
+    cursor:pointer; transition:all .2s; letter-spacing:.02em; margin-top:.75rem;
+    display:flex; align-items:center; justify-content:center; gap:.6rem;
+    box-shadow:0 6px 20px rgba(139,94,60,0.35);
+  }
+  .add-to-cart-btn:active { opacity:.85; transform:scale(.98); }
+
+  /* CART SIDEBAR */
+  .cart-overlay { position:fixed; inset:0; z-index:300; display:none; }
+  .cart-overlay.open { display:flex; justify-content:flex-end; }
+  .cart-bg { position:absolute; inset:0; background:rgba(0,0,0,.6); }
+  .cart-panel {
+    position:relative; width:min(400px,100vw); background:var(--bg2);
+    border-left:1px solid var(--border2); display:flex; flex-direction:column;
+    transform:translateX(100%); transition:transform .3s cubic-bezier(.32,.72,0,1);
+    height:100%;
+  }
+  .cart-overlay.open .cart-panel { transform:translateX(0); }
+  .cart-header { padding:1.25rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .cart-header h2 { font-family:var(--serif); font-size:1.3rem; font-weight:400; font-style:italic; color:var(--gold); }
+  .close-btn { background:none; border:none; color:var(--text2); font-size:1.3rem; cursor:pointer; padding:.25rem; }
+  .cart-items { flex:1; overflow-y:auto; padding:1rem; display:flex; flex-direction:column; gap:.75rem; }
+  .cart-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text2); }
+  .cart-empty .icon { font-size:3rem; opacity:.25; margin-bottom:.75rem; }
+  .cart-empty p { font-family:var(--serif); font-style:italic; color:var(--text2); }
+  .cart-item { display:flex; gap:.75rem; padding:.75rem; background:var(--bg2); border-radius:12px; border:1px solid var(--border); align-items:center; box-shadow:var(--shadow); }
+  .ci-img { width:44px; height:60px; object-fit:cover; border-radius:8px; background:var(--bg3); flex-shrink:0; }
+  .ci-info { flex:1; min-width:0; }
+  .ci-name { font-family:var(--serif); font-size:.9rem; color:var(--dark); line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-style:italic; }
+  .ci-sub { font-size:.7rem; color:var(--text3); margin-top:.15rem; }
+  .ci-price { font-family:var(--serif); font-size:.95rem; color:var(--accent); margin-top:.25rem; font-weight:600; }
+  .ci-qty { display:flex; align-items:center; gap:.4rem; flex-shrink:0; }
+  .ci-qbtn { width:26px; height:26px; border-radius:50%; border:1px solid var(--border); background:var(--bg3); color:var(--dark2); font-size:.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .ci-qval { font-size:.9rem; min-width:1.2rem; text-align:center; color:var(--dark); font-weight:500; }
+  .cart-footer { border-top:1px solid var(--border); padding:1.25rem; background:var(--bg2); }
+  .cart-total { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:1rem; }
+  .cart-total-label { color:var(--text2); font-size:.85rem; font-weight:400; }
+  .cart-total-val { font-family:var(--serif); font-size:1.6rem; font-weight:600; color:var(--accent); }
+  .checkout-btn {
+    width:100%; padding:1rem; border-radius:50px; background:var(--accent);
+    border:none; color:#fff; font-family:var(--sans); font-size:.95rem; font-weight:500;
+    cursor:pointer; transition:all .2s; letter-spacing:.02em;
+    box-shadow:0 4px 16px rgba(139,94,60,0.3);
+  }
+  .checkout-btn:active { opacity:.85; }
+  .checkout-btn:disabled { opacity:.35; cursor:not-allowed; box-shadow:none; }
+
+  /* CHECKOUT FORM */
+  .checkout-overlay { position:fixed; inset:0; z-index:400; display:none; overflow-y:auto; background:var(--bg); }
+  .checkout-overlay.open { display:block; }
+  .checkout-inner { max-width:520px; margin:0 auto; padding:1.5rem 1.25rem 4rem; }
+  .back-btn { background:linear-gradient(135deg,#6b3f1f,#8b5e3c); border:none; color:#fff; font-size:.85rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:.5rem; padding:.6rem 1.2rem; margin-bottom:1.5rem; border-radius:50px; width:fit-content; box-shadow:0 4px 14px rgba(139,94,60,0.35); transition:all .2s; }
+  .back-btn:active { transform:scale(.97); opacity:.9; }
+  .checkout-inner h1 { font-family:var(--serif); font-size:2rem; font-weight:300; font-style:italic; color:var(--gold); margin-bottom:.25rem; }
+  .checkout-inner .sub { font-size:.8rem; color:var(--text2); margin-bottom:2rem; }
+  .form-group { margin-bottom:1.25rem; }
+  .form-group label { display:block; font-size:.75rem; text-transform:uppercase; letter-spacing:.07em; color:var(--text2); margin-bottom:.4rem; }
+  .form-input {
+    width:100%; background:var(--bg2); border:1px solid var(--border); color:var(--text);
+    padding:.75rem 1rem; border-radius:10px; font-family:var(--sans); font-size:.9rem; outline:none;
+    transition:border .2s;
+  }
+  .form-input:focus { border-color:var(--border2); }
+  .form-input::placeholder { color:var(--text2); }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .order-summary { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:1rem; margin-bottom:1.5rem; }
+  .order-summary h3 { font-family:var(--serif); font-style:italic; color:var(--gold); margin-bottom:.75rem; font-weight:400; }
+  .os-item { display:flex; justify-content:space-between; font-size:.85rem; color:var(--text2); margin-bottom:.4rem; }
+  .os-item span:last-child { color:var(--cream); }
+  .os-total { display:flex; justify-content:space-between; border-top:1px solid var(--border); padding-top:.75rem; margin-top:.75rem; }
+  .os-total span:first-child { color:var(--text2); font-size:.85rem; }
+  .os-total span:last-child { font-family:var(--serif); font-size:1.2rem; color:var(--gold); font-weight:600; }
+  .submit-btn {
+    width:100%; padding:1.4rem 1.5rem; border-radius:16px;
+    background:linear-gradient(135deg, #6b3f1f, #8b5e3c);
+    border:none; color:#fff; font-family:var(--sans); font-size:1rem; font-weight:600;
+    cursor:pointer; transition:all .2s; letter-spacing:.02em; margin-top:1rem;
+    display:flex; align-items:center; justify-content:center; gap:1rem;
+    box-shadow:0 8px 28px rgba(107,63,31,0.45);
+  }
+  .submit-btn:disabled { opacity:.4; cursor:not-allowed; box-shadow:none; }
+  .submit-btn:active { transform:scale(.98); box-shadow:0 4px 12px rgba(107,63,31,0.3); }
+  .submit-btn:hover:not(:disabled) { background:linear-gradient(135deg, #7a4a25, #9e6e4a); box-shadow:0 10px 32px rgba(107,63,31,0.55); }
+  .btn-icon { font-size:2rem; line-height:1; }
+  .btn-text { display:flex; flex-direction:column; align-items:flex-start; }
+  .btn-text span { font-size:.72rem; font-weight:400; opacity:.8; margin-top:.1rem; }
+  .btn-arrow { font-size:1.4rem; margin-left:auto; }
+  .error-msg { color:#e24b4a; font-size:.78rem; margin-top:.3rem; display:none; }
+  .spinner { display:inline-block; width:18px; height:18px; border:2px solid rgba(0,0,0,.3); border-top-color:#0d0500; border-radius:50%; animation:spin .6s linear infinite; vertical-align:middle; margin-right:.5rem; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* SUCCESS */
+  .success-screen { display:none; text-align:center; padding:4rem 1.5rem; }
+  .success-screen .back-btn { margin:0 auto 2rem; }
+  .success-screen.show { display:block; }
+  .success-icon { font-size:4rem; margin-bottom:1.5rem; }
+  .success-screen h2 { font-family:var(--serif); font-size:2rem; font-style:italic; color:var(--dark); margin-bottom:.75rem; }
+  .success-screen p { color:var(--text2); font-size:.9rem; line-height:1.6; max-width:340px; margin:0 auto 2rem; }
+  .success-screen button { padding:.85rem 2rem; border-radius:50px; background:var(--accent); border:none; color:#fff; font-family:var(--sans); cursor:pointer; font-size:.9rem; box-shadow:0 4px 16px rgba(139,94,60,0.3); }
+
+  /* TOAST */
+  .toast {
+    position:fixed; bottom:5rem; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--dark); color:#fff;
+    padding:.65rem 1.25rem; border-radius:50px; font-size:.8rem; z-index:500;
+    opacity:0; transition:all .25s; pointer-events:none; white-space:nowrap;
+    box-shadow:0 4px 20px rgba(0,0,0,0.2); font-weight:400;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* LOGIN */
+  .login-overlay { position:fixed; inset:0; z-index:1000; background:linear-gradient(160deg,#f8f6f2,#ede8e0); display:flex; align-items:center; justify-content:center; padding:1.5rem; }
+  .login-overlay.hidden { display:none; }
+  .login-box { background:#fff; border-radius:20px; padding:2.5rem 2rem; width:min(380px,100%); box-shadow:0 12px 48px rgba(0,0,0,0.12); }
+  .login-logo { font-family:Arial,sans-serif; font-size:1.6rem; font-weight:700; color:#8b5e3c; font-style:italic; text-align:center; margin-bottom:.25rem; }
+  .login-sub { text-align:center; font-size:.8rem; color:#6e6e73; margin-bottom:2rem; }
+  .login-input { width:100%; padding:.8rem 1rem; border:1px solid #e0ddd8; border-radius:10px; font-size:.9rem; font-family:Arial,sans-serif; outline:none; margin-bottom:.75rem; transition:border .2s; }
+  .login-input:focus { border-color:#8b5e3c; }
+  .login-btn { width:100%; padding:1rem; border-radius:12px; background:linear-gradient(135deg,#6b3f1f,#8b5e3c); border:none; color:#fff; font-size:1rem; font-weight:600; cursor:pointer; margin-top:.5rem; box-shadow:0 6px 20px rgba(107,63,31,0.35); transition:all .2s; }
+  .login-btn:active { transform:scale(.98); }
+  .login-error { color:#c0392b; font-size:.78rem; text-align:center; margin-top:.5rem; display:none; }
+  .login-spinner { display:none; text-align:center; color:#8b5e3c; font-size:.85rem; margin-top:.75rem; }
+
+  /* CHANGE PASSWORD */
+  .chpwd-overlay { position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.5); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; padding:1.5rem; }
+  .chpwd-overlay.open { display:flex; }
+  .chpwd-box { background:#fff; border-radius:20px; padding:2rem; width:min(360px,100%); box-shadow:0 12px 48px rgba(0,0,0,0.2); }
+  .chpwd-box h3 { font-size:1.1rem; font-weight:700; color:#1c1c1e; margin-bottom:1.25rem; }
+  .chpwd-error { color:#c0392b; font-size:.78rem; margin-top:.5rem; display:none; }
+  .chpwd-ok { color:#27ae60; font-size:.78rem; margin-top:.5rem; display:none; }
+  .user-menu { position:relative; }
+  .user-btn { background:none; border:1px solid #e0ddd8; border-radius:50px; padding:.35rem .85rem; font-size:.78rem; color:#6e6e73; cursor:pointer; display:flex; align-items:center; gap:.4rem; font-family:Arial,sans-serif; }
+  .user-dropdown { position:absolute; top:calc(100% + .5rem); right:0; background:#fff; border:1px solid #e0ddd8; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.12); overflow:hidden; display:none; min-width:160px; z-index:200; }
+  .user-dropdown.open { display:block; }
+  .user-dd-item { padding:.7rem 1rem; font-size:.82rem; cursor:pointer; color:#1c1c1e; display:flex; align-items:center; gap:.5rem; }
+  .user-dd-item:hover { background:#f8f6f2; }
+  .user-dd-item.danger { color:#c0392b; }
+
+  /* HISTORIAL */
+  .historial-overlay { position:fixed; inset:0; z-index:400; display:none; overflow-y:auto; background:var(--bg); }
+  .historial-overlay.open { display:block; }
+  .historial-inner { max-width:520px; margin:0 auto; padding:1.5rem 1.25rem 4rem; }
+  .historial-inner h1 { font-family:Arial,sans-serif; font-size:1.6rem; font-weight:700; color:var(--dark); margin-bottom:.25rem; }
+  .historial-inner .sub { font-size:.8rem; color:var(--text2); margin-bottom:1.5rem; }
+  .pedido-card { background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:1rem; margin-bottom:1rem; box-shadow:var(--shadow); }
+  .pedido-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.75rem; padding-bottom:.75rem; border-bottom:1px solid var(--border); }
+  .pedido-id { font-size:.75rem; font-weight:700; color:var(--accent); }
+  .pedido-fecha { font-size:.72rem; color:var(--text2); }
+  .pedido-estado { font-size:.7rem; padding:.2rem .6rem; border-radius:50px; font-weight:600; }
+  .pedido-estado.pendiente { background:#fff0f0; color:#c0392b; border:1px solid #f5c6cb; }
+  .pedido-estado.servido { background:#f0f9f0; color:#27ae60; border:1px solid #c3e6cb; }
+  .pedido-estado.otro { background:#f8f6f2; color:#6e6e73; border:1px solid #e0ddd8; }
+  .pedido-item { display:flex; justify-content:space-between; font-size:.82rem; color:var(--text2); padding:.25rem 0; }
+  .pedido-item span:last-child { color:var(--dark); font-weight:500; }
+  .pedido-total { display:flex; justify-content:space-between; margin-top:.75rem; padding-top:.75rem; border-top:1px solid var(--border); }
+  .pedido-total span:first-child { font-size:.85rem; color:var(--text2); }
+  .pedido-total span:last-child { font-family:Arial,sans-serif; font-size:1.1rem; font-weight:700; color:var(--accent); }
+  .historial-empty { text-align:center; padding:3rem 1rem; color:var(--text2); }
+  .historial-loading { text-align:center; padding:2rem; color:var(--text2); font-size:.9rem; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Ramon Bilbao</div>
+  <div class="user-menu"><button class="user-btn" id="userBtn" onclick="toggleUserMenu()">👤 <span id="userName">-</span></button><div class="user-dropdown" id="userDropdown"><div class="user-dd-item" onclick="openHistorial()">📋 Mis pedidos</div>
+<div class="user-dd-item" onclick="openChangePwd()">🔐 Cambiar contraseña</div><div class="user-dd-item danger" onclick="doLogout()">🚪 Cerrar sesión</div></div></div>
+  <button class="cart-btn" onclick="openCart()" aria-label="Abrir cesta">
+    🛒
+    <span class="cart-badge" id="cartBadge">0</span>
+  </button>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <img src="fotos/portada.jpg" alt="Catalogo Vinos Espirituosos">
+</div>
+
+<!-- SEARCH -->
+<div class="search-wrap">
+  <span class="search-icon">🔍</span>
+  <input class="search-input" type="search" placeholder="Buscar vino, licor, bodega..." id="searchInput" oninput="renderProducts()">
+</div>
+
+<!-- NAV PILLS -->
+<div class="nav-wrap">
+  <div class="nav-select-group">
+    <label class="nav-label">Bodega</label>
+    <select class="nav-select" id="navBodega" onchange="setBodega(this.value)">
+    </select>
+  </div>
+  <div class="nav-select-group">
+    <label class="nav-label">Categoría</label>
+    <select class="nav-select" id="navScroll" onchange="setCategory(this.value)">
+    </select>
+  </div>
+</div>
+
+<!-- PRODUCTS -->
+<div class="products" id="productsContainer"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="detailOverlay">
+  <div class="overlay-bg" onclick="closeDetail()"></div>
+  <div class="sheet" id="detailSheet">
+    <div class="sheet-top-bar" style="display:flex;justify-content:flex-end;padding:.6rem .75rem;">
+      <button class="sheet-close" onclick="closeDetail()" style="width:44px;height:44px;border-radius:50%;background:#8b5e3c;border:none;color:#fff;font-size:1.4rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(139,94,60,0.45);">✕</button>
+    </div>
+    <div id="sheetContent"></div>
+  </div>
+</div>
+
+<!-- CART -->
+<div class="cart-overlay" id="cartOverlay">
+  <div class="cart-bg" onclick="closeCart()"></div>
+  <div class="cart-panel">
+    <div class="cart-header">
+      <h2>Tu cesta</h2>
+      <button class="close-btn" onclick="closeCart()">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span class="cart-total-label">Total</span>
+        <span class="cart-total-val" id="cartTotal">0,00 €</span>
+      </div>
+      <button class="checkout-btn" id="checkoutBtn" onclick="openCheckout()">Finalizar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKOUT -->
+<div class="checkout-overlay" id="checkoutOverlay">
+  <div class="checkout-inner">
+    <button class="back-btn" onclick="closeCheckout()">← Volver a la cesta</button>
+
+    <div id="checkoutForm">
+      <h1>Tu pedido</h1>
+      <p class="sub">Recibirás confirmación por email · Sin registro necesario</p>
+
+      <div class="order-summary" id="orderSummary"></div>
+
+      <div class="form-group">
+        <label>Nombre</label>
+        <input class="form-input" id="fNombre" type="text" placeholder="Tu nombre" readonly style="background:#f0ede8;color:#6e6e73;">
+        <p class="error-msg" id="eNombre">Campo obligatorio</p>
+      </div>
+      <div class="form-group">
+        <label>Email *</label>
+        <input class="form-input" id="fEmail" type="email" placeholder="ana@email.com">
+        <p class="error-msg" id="eEmail">Email inválido</p>
+      </div>
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input class="form-input" id="fTelefono" type="tel" placeholder="+34 600 000 000">
+      </div>
+      <input type="hidden" id="fDireccion" value="-">
+      <input type="hidden" id="fCP" value="-">
+      <input type="hidden" id="fCiudad" value="-">
+      <div class="form-group">
+        <label>Notas del pedido</label>
+        <input class="form-input" id="fNotas" type="text" placeholder="Instrucciones, observaciones...">
+      </div>
+      <button class="submit-btn" id="submitBtn" onclick="submitOrder()">
+        <span class="btn-icon">🛒</span>
+        <div class="btn-text">
+          Confirmar pedido
+          <span>Recibirás confirmación por email</span>
+        </div>
+        <span class="btn-arrow">→</span>
+      </button>
+    </div>
+
+    <div class="success-screen" id="successScreen">
+      <div class="success-icon">🍾</div>
+      <h2>¡Pedido recibido!</h2>
+      <p>Te hemos enviado la confirmación por email al correo <strong id="successEmail"></strong>. En breve nos ponemos en contacto contigo.</p>
+      <button onclick="resetAll()">Seguir comprando</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIGURACIÓN — EDITA AQUÍ
+// ============================================================
+const CONFIG = {
+  // EmailJS — crea cuenta en https://www.emailjs.com (gratis hasta 200 emails/mes)
+  emailjs_public_key: "GQr2gJCrpeFqz_j5Z",
+  emailjs_service_id: "service_sb3v49m",
+  emailjs_template_cliente: "template_rqo2l2h",
+  emailjs_template_tienda:  "template_tj1j6jm",
+
+  // Google Sheets — ver guía en README.md
+  google_script_url: "https://script.google.com/macros/s/AKfycby8CaZIz0PF67ywlJ-flhM-lMigCSzDtWq1jD7XryUYclCttBnvJsaRllSE2DCCLxRcwg/exec",
+
+  // Tu email para recibir pedidos
+  owner_email: "joan260804@hotmail.com",
+
+  // Nombre de la tienda
+  shop_name: "Ramon Bilbao"
+};
+
+// ============================================================
+// PRODUCTOS — Hardcodeados para máxima velocidad
+// Para actualizar: editar el array products directamente
+// ============================================================
+let products = [
+  {
+    "id": "2000001847",
+    "nombre": "Pommery Brut Royal",
+    "categoria": "Espumoso",
+    "descripcion": "1 bot. 75 cl. Pommery Brut Royal (caja 6 botellas)",
+    "precio": 21.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Pommery_Brut_Royal.jpg",
+    "bodega": "Pommery",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000001858",
+    "nombre": "Pommery Brut Apanage",
+    "categoria": "Espumoso",
+    "descripcion": "1 bot. 75 cl. Pommery Brut Apanage (caja 6 botellas)",
+    "precio": 21.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Pommery_Brut_Apanage.jpg",
+    "bodega": "Pommery",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000001864",
+    "nombre": "Pommery Blans de Blancs",
+    "categoria": "Espumoso",
+    "descripcion": "1 bot. 75 cl. Pommery Blans de Blancs (caja 6 botellas)",
+    "precio": 23.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Pommery_Blanc_de_Blancs.jpg",
+    "bodega": "Pommery",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000001860",
+    "nombre": "Pommery Brut Royal Rosé",
+    "categoria": "Espumoso",
+    "descripcion": "1 bot. 75 cl. Pommery Brut Royal Rosé (caja 6 botellas)",
+    "precio": 23.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Pommery_Brut_Royal.jpg",
+    "bodega": "Pommery",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000282",
+    "nombre": "Martin Miller",
+    "categoria": "Ginebra",
+    "descripcion": "1 bot. 70 cl. Martin Miller (caja 6 botellas)",
+    "precio": 15.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Martin_Millers_Gin.jpg",
+    "bodega": "Martin Miller",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002136",
+    "nombre": "Martin Miller Winterfull ED LIM",
+    "categoria": "Ginebra",
+    "descripcion": "1 bot. 70 cl. Martin Miller Winterfull ED LIM (cj 6 b.)",
+    "precio": 15.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Martin_Millers_Winterful.jpg",
+    "bodega": "Martin Miller",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002325",
+    "nombre": "Martin Miller Summerfull ED LIM",
+    "categoria": "Ginebra",
+    "descripcion": "1 bot. 70 cl. Martin Miller Summerfull ED LIM (cj 6 b.)",
+    "precio": 15.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Martin_Millers_Summerful.jpg",
+    "bodega": "Martin Miller",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000324",
+    "nombre": "Martin Miller Westbourne",
+    "categoria": "Ginebra",
+    "descripcion": "1 bot. 70 cl. Martin Miller Westbourne (caja 6 botellas)",
+    "precio": 21.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Martin_Millers_Westbourne_Strength.jpg",
+    "bodega": "Martin Miller",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000003",
+    "nombre": "Licor 43 Litro",
+    "categoria": "Licores",
+    "descripcion": "1 bot. Litro Licor 43 (caja 6 botellas)",
+    "precio": 13.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Licor_43.jpg",
+    "bodega": "LICOR 43",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000005",
+    "nombre": "Licor 43 70 cl.",
+    "categoria": "Licores",
+    "descripcion": "1 bot. 70 cl. Licor 43 (caja 6 botellas)",
+    "precio": 9.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Licor_43.jpg",
+    "bodega": "LICOR 43",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000001997",
+    "nombre": "Licor 43 Horchata",
+    "categoria": "Licores",
+    "descripcion": "1 bot. 70 cl. Licor 43 Horchata (caja 6botellas)",
+    "precio": 9.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Licor_43_Horchata.jpg",
+    "bodega": "LICOR 43",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002337",
+    "nombre": "Licor 43 Chocolate",
+    "categoria": "Licores",
+    "descripcion": "1 bot. 70 cl. Licor 43 Chocolate (caja 6botellas)",
+    "precio": 10.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Licor_43_Chocolate.jpg",
+    "bodega": "LICOR 43",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000545",
+    "nombre": "GRESSY",
+    "categoria": "Licores",
+    "descripcion": "1 bot. 70 cl. GRESSY (caja 6 botellas)",
+    "precio": 8.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Gressy.jpg",
+    "bodega": "Gressy",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000982",
+    "nombre": "El Afilador Crema de Licor",
+    "categoria": "Licores",
+    "descripcion": "1 bot. 70 cl. El Afilador Crema de Licor (caja 6 botellas)",
+    "precio": 6.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/El_Afilador_Crema_de_Licor.jpg",
+    "bodega": "El Afilador",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000198",
+    "nombre": "Limon de Sorrento",
+    "categoria": "Licores",
+    "descripcion": "1 bot. 70 cl. Limon de Sorrento (caja 6 botellas)",
+    "precio": 9.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Villa_Massa.jpg",
+    "bodega": "Villa Massa",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002283",
+    "nombre": "Amareto Villa Massa",
+    "categoria": "Licores",
+    "descripcion": "1 bot. 70 cl. Amareto Villa Massa (caja 6 botellas)",
+    "precio": 9.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Villa_Massa_Amaretto.jpg",
+    "bodega": "Villa Massa",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000947",
+    "nombre": "El Afilador Aguardiente",
+    "categoria": "Orujo",
+    "descripcion": "1 bot. 70 cl. El Afilador Aguardiente (caja 6 botellas)",
+    "precio": 7.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/El_Afilador_Tradicional.jpg",
+    "bodega": "El Afilador",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000956",
+    "nombre": "El Afilador Licor de Hierbas",
+    "categoria": "Licores",
+    "descripcion": "1 bot. 70 cl. El Afilador Licor de Hierbas (caja 6 botellas)",
+    "precio": 6.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/El_Afilador_Licor_de_Hierbas.jpg",
+    "bodega": "El Afilador",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000973",
+    "nombre": "El Afilador Licor de Café",
+    "categoria": "Licores",
+    "descripcion": "1 bot. 70 cl. El Afilador Licor de Café (caja 6 botellas)",
+    "precio": 6.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/El_Afilador_Licor_Cafe.jpg",
+    "bodega": "El Afilador",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000878",
+    "nombre": "Orujo Original",
+    "categoria": "Orujo",
+    "descripcion": "1 bot. 70 cl. Orujo Original (caja 6 botellas)",
+    "precio": 16.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Mar_de_Frades_Orujo_Blanco_de_Albarino.jpg",
+    "bodega": "Mar de Frades",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000883",
+    "nombre": "Orujo Blanco",
+    "categoria": "Orujo",
+    "descripcion": "1 bot. 70 cl. Orujo Blanco (caja 6 botellas)",
+    "precio": 10.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Mar_de_Frades_Orujo_Blanco_de_Albarino.jpg",
+    "bodega": "Mar de Frades",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000886",
+    "nombre": "Orujo Hierbas",
+    "categoria": "Orujo",
+    "descripcion": "1 bot. 70 cl. Orujo Hierbas (caja 6 botellas)",
+    "precio": 10.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Mar_de_Frades_Licor_de_Hierbas.jpg",
+    "bodega": "Mar de Frades",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000634",
+    "nombre": "Berezko",
+    "categoria": "Licores",
+    "descripcion": "1 bot. Litro Berezko (caja 6 botellas)",
+    "precio": 11.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Berezko.jpg",
+    "bodega": "Berezko",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000598",
+    "nombre": "Zoco 25º",
+    "categoria": "Licores",
+    "descripcion": "1 bot. Litro Zoco 25º (caja 6 botellas)",
+    "precio": 8.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Zoco.jpg",
+    "bodega": "Zoco",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002401",
+    "nombre": "Lolea Nº1",
+    "categoria": "Espumoso",
+    "descripcion": "24 latas 2,5 cl. Lolea Nº1 (caja 24 latas)*",
+    "precio": 1.3,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Lolea_N1.jpg",
+    "bodega": "Lolea",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000893",
+    "nombre": "Lolea Rose Spritz",
+    "categoria": "Espumoso",
+    "descripcion": "1 bot. 75 cl. Lolea Rose Spritz",
+    "precio": 5.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Lolea_Rose_spritz.jpg",
+    "bodega": "Lolea",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000906",
+    "nombre": "Lolea White Spritz",
+    "categoria": "Espumoso",
+    "descripcion": "1 bot. 75 cl. Lolea White Spritz",
+    "precio": 5.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Lolea_white_spritz.jpg",
+    "bodega": "Lolea",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000753",
+    "nombre": "Crianza Ed. Limitada",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 75 cl. CRZ.ED.LIMITADA (caja 6 botellas)",
+    "precio": 7.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Edicion_Limitada.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000754",
+    "nombre": "Crianza Ed. Limitada MAGNUM",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 150 cl. CRZ.ED.LIMITADA MAGNUM (caja 6 botellas)",
+    "precio": 13.25,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Edicion_Limitada.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000662",
+    "nombre": "RESERVA",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 75 cl. RESERVA (caja 6 botellas)",
+    "precio": 7.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Reserva.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000663",
+    "nombre": "RESERVA MAGNUM",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 150 cl. RESERVA MAGNUM (caja 6 botellas)",
+    "precio": 15.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Reserva.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000666",
+    "nombre": "RESERVA 1/2 Litro",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 500 cl. RESERVA (caja 1 botella)",
+    "precio": 60.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Reserva.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000705",
+    "nombre": "RESERVA ORIGINAL 43",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 75 cl. RESERVA ORIGINAL 43 (caja 6 botellas)",
+    "precio": 9.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Reserva.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000783",
+    "nombre": "GRAN RESERVA",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 75 cl. GRAN RESERVA (caja 6 botellas)",
+    "precio": 15.24,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Gran_Reserva.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000764",
+    "nombre": "CRZ.VIÑEDOS ALTURA",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 75 cl. CRZ.VIÑEDOS ALTURA (caja 6 botellas)",
+    "precio": 7.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Vinedos_de_Altura.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000485",
+    "nombre": "MIRTO",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 75 cl. MIRTO (EST) (caja 4 botellas)",
+    "precio": 21.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Mirto_de_Ramon_Bilbao.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002256",
+    "nombre": "LIMITE NORTE",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 75 cl. LIMITE NORTE (caja de 3 y 6 botellas)",
+    "precio": 9.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Limite_Norte.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002255",
+    "nombre": "LIMITE SUR",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 75 cl. LIMITE SUR (caja 3 botellas)",
+    "precio": 9.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Limite_Sur.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000722",
+    "nombre": "CRIANZA",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 75 cl. CRIANZA (caja 12 botellas)",
+    "precio": 5.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Crianza.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000724",
+    "nombre": "CRIANZA MAGNUM",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 150 cl. CRIANZA MAGNUM (caja 6 botellas)",
+    "precio": 10.25,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Crianza.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000733",
+    "nombre": "CRIANZA 300 cl",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 300 cl. CRIANZA (caja 1 botella)",
+    "precio": 21.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Crianza.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000734",
+    "nombre": "CRIANZA 1/2 Litro",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 500 cl. CRIANZA (caja 1 botella)",
+    "precio": 38.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Crianza.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002484",
+    "nombre": "ORGANIC RIOJA",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 75 cl. ORGANIC RIOJA (caja 6 botellas)",
+    "precio": 6.45,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Tinto_Organic.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000001130",
+    "nombre": "CRIANZA Cruz de Alba",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 75 cl. CRIANZA Cruz de Alba (caja 6 botellas)",
+    "precio": 8.38,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Cruz_de_Alba_Crianza.jpg",
+    "bodega": "Cruz de Alba",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000001127",
+    "nombre": "FINCA LOS HOYALES",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 75 cl. FINCA LOS HOYALES (caja 3 botella)",
+    "precio": 4.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Finca_Los_Hoyales.jpg",
+    "bodega": "Cruz de Alba",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002147",
+    "nombre": "LALOMBA FINCA VALHONTA",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 75 cl. LALOMBA FINCA VALHONTA (caja 6 botellas)",
+    "precio": 32.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Lalomba_Finca_Vainonta.jpg",
+    "bodega": "Lalomba",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002149",
+    "nombre": "LALOMBA FINCA LADERO",
+    "categoria": "Tinto",
+    "descripcion": "1 bot. 75 cl. LALOMBA FINCA LADERO (caja 6 botellas)",
+    "precio": 34.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Lalomba_Finca_Ladero.jpg",
+    "bodega": "Lalomba",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000391",
+    "nombre": "Matusalem Añejo",
+    "categoria": "Ron",
+    "descripcion": "1 bot. 70 cl. Matusalem Añejo (caja 6 botellas)",
+    "precio": 11.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ron_Abuelo_Anejo.jpg",
+    "bodega": "Matusalem",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000399",
+    "nombre": "Matusalem Solera 7",
+    "categoria": "Ron",
+    "descripcion": "1 bot. 70 cl. Matusalem Solera 7 (caja 6 botellas)",
+    "precio": 11.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ron_Abuelo_7_Anos.jpg",
+    "bodega": "Matusalem",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000402",
+    "nombre": "Matusalem Clasico 10",
+    "categoria": "Ron",
+    "descripcion": "1 bot. 70 cl. Matusalem Clasico 10 (caja 6 botellas)",
+    "precio": 16.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ron_Abuelo_12_Anos.jpg",
+    "bodega": "Matusalem",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000406",
+    "nombre": "Matusalem G.Reserva 15",
+    "categoria": "Ron",
+    "descripcion": "1 bot. 70 cl. Matusalem G.Reserva 15 (caja 6 botellas)",
+    "precio": 22.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ron_Abuelo_12_Anos.jpg",
+    "bodega": "Matusalem",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000431",
+    "nombre": "Matusalem Solera 23",
+    "categoria": "Ron",
+    "descripcion": "1 bot. 70 cl. Matusalem Solera 23 (caja 3 botellas)",
+    "precio": 33.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ron_Abuelo_XII_Anos_Two_Oaks.jpg",
+    "bodega": "Matusalem",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000001957",
+    "nombre": "Matusalem Insolito",
+    "categoria": "Ron",
+    "descripcion": "1 bot. 70 cl. Matusalem Insolito (caja 6 botellas)",
+    "precio": 22.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ron_Abuelo_XII_Anos_Three_Angels.jpg",
+    "bodega": "Matusalem",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000688",
+    "nombre": "RAMON BILBAO ROSADO",
+    "categoria": "Rosado",
+    "descripcion": "1 bot. 75 cl. ROSADO (caja 6 botellas)",
+    "precio": 4.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Rosado.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002151",
+    "nombre": "LALOMBA FINCA LALINDE ROSADO",
+    "categoria": "Rosado",
+    "descripcion": "1 bot. 75 cl. LALOMBA FINCA LALINDE ROSADO (cj 6 bot)",
+    "precio": 10.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Lalomba_Finca_Lalinde.jpg",
+    "bodega": "Lalomba",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002389",
+    "nombre": "Tequila Silver",
+    "categoria": "Licores",
+    "descripcion": "1 bot. 70 cl. Tequila Silver (caja 6 botellas)",
+    "precio": 8.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Tequila_Buen_Amigo_Silver.jpg",
+    "bodega": "Buen Amigo",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002390",
+    "nombre": "Tequila Gold",
+    "categoria": "Licores",
+    "descripcion": "1 bot. 70 cl. Tequila Gold (caja 6 botellas)",
+    "precio": 8.5,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Tequila_Buen_Amigo_Gold.jpg",
+    "bodega": "Buen Amigo",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002567",
+    "nombre": "Vermouth Giardino Rosso",
+    "categoria": "Vermouth",
+    "descripcion": "1 bot. 75 cl. Vermouth Giardino Rosso (caja 6 botellas)",
+    "precio": 13.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Giardino_Tradizionale_Rosso.jpg",
+    "bodega": "Villa Massa",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002561",
+    "nombre": "Vermouth Giardino Dry",
+    "categoria": "Vermouth",
+    "descripcion": "1 bot. 75 cl. Vermouth Giardino Dry (caja 6 botellas)",
+    "precio": 13.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Giardino_Mediterranean_Dry.jpg",
+    "bodega": "Villa Massa",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000255",
+    "nombre": "Thunder Bitch",
+    "categoria": "Whisky",
+    "descripcion": "1 bot. 70 cl. Thunder Bitch (caja 6 botellas)",
+    "precio": 9.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Thunder_Bitch.jpg",
+    "bodega": "Thunder Bitch",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000834",
+    "nombre": "Albariño Mar de Frades",
+    "categoria": "Blanco",
+    "descripcion": "1 bot. 75 cl. Albariño MdF (caja 6 botellas)",
+    "precio": 9.25,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Mar_de_Frades_Albarino.jpg",
+    "bodega": "Mar de Frades",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000836",
+    "nombre": "Albariño Mar de Frades Magnum",
+    "categoria": "Blanco",
+    "descripcion": "1 bot. 150 cl. Albariño MdF Magnum (caja 6 botellas)",
+    "precio": 18.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Mar_de_Frades_Albarino.jpg",
+    "bodega": "Mar de Frades",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000857",
+    "nombre": "Finca Valiñas",
+    "categoria": "Blanco",
+    "descripcion": "1 bot. 75 cl. Finca Valiñas (caja 6 botellas)",
+    "precio": 12.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Mar_de_Frades_Finca_Valinas.jpg",
+    "bodega": "Mar de Frades",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000865",
+    "nombre": "Mar de Frades Brut Nature",
+    "categoria": "Blanco",
+    "descripcion": "1 bot. 75 cl. Mar de Frades Brut Nature (caja 6 botellas)",
+    "precio": 9.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Mar_de_Frades_Brut_Nature.jpg",
+    "bodega": "Mar de Frades",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000831",
+    "nombre": "Godello de Mar de Frades",
+    "categoria": "Blanco",
+    "descripcion": "1 bot. 75 cl. Godello de Mar de Frades (caja 6 botellas)",
+    "precio": 12.29,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Mar_de_Frades_Godello.jpg",
+    "bodega": "Mar de Frades",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000001260",
+    "nombre": "R.BILBAO RUEDA VERDEJO",
+    "categoria": "Blanco",
+    "descripcion": "1 bot. 75 cl. R.BILBAO RUEDA VERDEJO (caja 6 botellas)",
+    "precio": 3.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Rueda_Verdejo.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000002595",
+    "nombre": "ORGANIC VERDEJO",
+    "categoria": "Blanco",
+    "descripcion": "1 bot. 75 cl. ORGANIC VERDEJO (caja 6 botellas)",
+    "precio": 6.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_early_harvest_Verdejo.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000001283",
+    "nombre": "R.BILBAO SAUVIGNON BLANC",
+    "categoria": "Blanco",
+    "descripcion": "1 bot. 75 cl. R.BILBAO SAUVIGNON BLANC (caja 6 botellas)",
+    "precio": 4.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_early_harvest_Verdejo.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000001271",
+    "nombre": "R.BILBAO ED.LIMITADA LIAS",
+    "categoria": "Blanco",
+    "descripcion": "1 bot. 75 cl. R.BILBAO ED.LIMITADA LIAS (caja 6 botellas)",
+    "precio": 7.0,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Ramon_Bilbao_Verdejo_sobre_Lias.jpg",
+    "bodega": "Ramon Bilbao",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000009999",
+    "nombre": "Pommery Cuvee Lousie",
+    "categoria": "Espumoso",
+    "descripcion": "1 bot. 75 cl. Pommery Cuvee Lousie (caja 6 botellas)",
+    "precio": 23.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Cuvee_Louise.jpg",
+    "bodega": "Pommery",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  },
+  {
+    "id": "2000000998",
+    "nombre": "Yellow Rose",
+    "categoria": "Whisky",
+    "descripcion": "1 bot. 70 cl. Yellow Rose (caja 6 botellas)",
+    "precio": 9.75,
+    "imagen_url": "https://joan260804.github.io/PEDIDOSVINOSRB/fotos/Yellow_Rose_Harris_County.jpg",
+    "bodega": "Yellow Rose",
+    "origen": "",
+    "ano": "",
+    "disponible": "true"
+  }
+];
+let cart = [];
+let currentDetail = null;
+let activeCategory = "Todos";
+let activeBodega = "Todas";
+
+const CATEGORIES = ["Todos","Tinto","Blanco","Rosado","Licores","Orujo","Espumoso","Ginebra","Ron","Vermouth","Whisky"];
+const ICONS = { Tinto:"🍷", Blanco:"🥂", Rosado:"🌸", Espumoso:"✨", Whisky:"🥃", Ginebra:"🌿", Ron:"🥃", Vermouth:"🫙", Orujo:"🌾", Licores:"🍯", Todos:"" };
+
+// Productos ya cargados — init directo
+function loadProducts() {
+  init();
+}
+
+function getDemoProducts() {
+  return [
+    { id:"1", nombre:"Ribera del Duero Reserva", categoria:"Tinto", descripcion:"Elegante tinto con 18 meses en barrica de roble francés. Notas de cereza, vainilla y especias. Maridaje ideal con carnes rojas.", precio:24.50, imagen_url:"", bodega:"Bodega Emilio Moro", origen:"Ribera del Duero", ano:"2019", disponible:"true" },
+    { id:"2", nombre:"Albariño Rías Baixas", categoria:"Blanco", descripcion:"Fresco y aromático con notas de melocotón y flores blancas. Perfect con mariscos y pescados.", precio:14.90, imagen_url:"", bodega:"Pazo de Señoráns", origen:"Galicia", ano:"2022", disponible:"true" },
+    { id:"3", nombre:"Cava Brut Nature", categoria:"Espumoso", descripcion:"Burbuja fina y persistente. Elaborado con Macabeo, Xarel·lo y Parellada. 30 meses de crianza.", precio:18.00, imagen_url:"", bodega:"Codorníu", origen:"Penedès", ano:"2020", disponible:"true" },
+    { id:"4", nombre:"Rosado de Garnacha", categoria:"Rosado", descripcion:"Color salmón intenso. Notas de fresa, frambuesa y un toque floral. Versátil y refrescante.", precio:11.50, imagen_url:"", bodega:"Bodegas Muga", origen:"Rioja", ano:"2022", disponible:"true" },
+    { id:"5", nombre:"Rioja Gran Reserva", categoria:"Tinto", descripcion:"Complejidad y elegancia. 24 meses en barrica y 36 en botella. Taninos sedosos, larga crianza.", precio:38.00, imagen_url:"", bodega:"CVNE", origen:"Rioja", ano:"2016", disponible:"true" },
+    { id:"6", nombre:"Whisky Single Malt 12 Años", categoria:"Whisky", descripcion:"Destilado escocés con notas de miel, vainilla y un ligero ahumado. 43% vol.", precio:45.00, imagen_url:"", bodega:"Glenfiddich", origen:"Escocia", ano:"", disponible:"true" },
+    { id:"7", nombre:"Ginebra Premium Botánica", categoria:"Ginebra", descripcion:"Elaborada con 11 botánicos seleccionados. Notas de enebro, cilantro y lavanda. 42% vol.", precio:32.00, imagen_url:"", bodega:"Gin Mare", origen:"España", ano:"", disponible:"true" },
+    { id:"8", nombre:"Orujo de Hierbas Galego", categoria:"Orujo", descripcion:"Tradicional licor gallego elaborado con hierbas aromáticas de la zona. 40% vol.", precio:19.00, imagen_url:"", bodega:"Artesanal", origen:"Galicia", ano:"", disponible:"true" },
+    { id:"9", nombre:"Licor de Miel y Whisky", categoria:"Licores", descripcion:"Mezcla artesanal de whisky y miel natural. Suave y aromático. 35% vol.", precio:22.00, imagen_url:"", bodega:"Baileys Reserve", origen:"Irlanda", ano:"", disponible:"true" },
+    { id:"10", nombre:"Verdejo Rueda", categoria:"Blanco", descripcion:"Vibrante y frutal con notas herbáceas. Frescura y persistencia. 100% Verdejo.", precio:9.90, imagen_url:"", bodega:"Marqués de Riscal", origen:"Rueda", ano:"2022", disponible:"true" },
+    { id:"11", nombre:"Priorat Selecció", categoria:"Tinto", descripcion:"Vino de la DOQ Priorat con Garnacha y Cariñena. Suelo de llicorella. Potente y mineral.", precio:32.00, imagen_url:"", bodega:"Scala Dei", origen:"Priorat", ano:"2020", disponible:"true" },
+    { id:"12", nombre:"Cava Rosado", categoria:"Espumoso", descripcion:"Espumoso rosado elaborado con Pinot Noir. Color frambuesa, burbuja delicada y persistente.", precio:22.00, imagen_url:"", bodega:"Juvé & Camps", origen:"Penedès", ano:"2021", disponible:"true" },
+  ];
+}
+
+// ============================================================
+// INIT & RENDER
+// ============================================================
+function init() {
+  loadCart();
+  renderNav();
+  renderProducts();
+}
+
+function renderNav() {
+  const nav = document.getElementById("navScroll");
+  if (nav) {
+    nav.innerHTML = CATEGORIES.map(c =>
+      `<option value="${c}" ${c===activeCategory?"selected":""}>${ICONS[c]||""} ${c}</option>`
+    ).join("");
+    nav.className = "nav-select" + (activeCategory !== "Todos" ? " active-filter" : "");
+  }
+  const navB = document.getElementById("navBodega");
+  if (navB) {
+    const bodegas = ["Todas", ...new Set(products.map(p => p.bodega).filter(Boolean).sort())];
+    navB.innerHTML = bodegas.map(b =>
+      `<option value="${b}" ${b===activeBodega?"selected":""}>${b}</option>`
+    ).join("");
+    navB.className = "nav-select" + (activeBodega !== "Todas" ? " active-filter" : "");
+  }
+}
+
+function setCategory(cat) {
+  activeCategory = cat;
+  renderNav();
+  renderProducts();
+}
+
+function setBodega(bodega) {
+  activeBodega = bodega;
+  renderNav();
+  renderProducts();
+}
+
+function renderProducts() {
+  const q = document.getElementById("searchInput").value.toLowerCase();
+  const container = document.getElementById("productsContainer");
+  let filtered = products.filter(p => {
+    const matchCat = activeCategory === "Todos" || p.categoria === activeCategory;
+    const matchBodega = activeBodega === "Todas" || p.bodega === activeBodega;
+    const matchQ = !q || p.nombre.toLowerCase().includes(q) || p.bodega?.toLowerCase().includes(q) || p.origen?.toLowerCase().includes(q);
+    return matchCat && matchBodega && matchQ;
+  });
+
+  // Render
+  if (!filtered.length) {
+    container.innerHTML = `<div class="empty"><div class="icon">🔍</div><p>No encontramos resultados</p></div>`;
+    return;
+  }
+
+  // Group by category when "Todos"
+  if (activeCategory === "Todos" && !q) {
+    const CAT_ORDER = ["Tinto","Blanco","Rosado","Licores","Orujo","Espumoso","Ginebra","Ron","Vermouth","Whisky"];
+    const groups = {};
+    filtered.forEach(p => { if(!groups[p.categoria]) groups[p.categoria]=[]; groups[p.categoria].push(p); });
+    const sortedGroups = CAT_ORDER.filter(c => groups[c]).map(c => [c, groups[c]]);
+    // Add any categories not in the order list
+    Object.entries(groups).forEach(([c, items]) => { if(!CAT_ORDER.includes(c)) sortedGroups.push([c, items]); });
+    container.innerHTML = sortedGroups.map(([cat, items]) => `
+      <h2 class="section-title">${ICONS[cat]||""} ${cat}</h2>
+      <div class="grid">${items.map(cardHTML).join("")}</div>
+    `).join("");
+  } else {
+    container.innerHTML = `<div class="grid">${filtered.map(cardHTML).join("")}</div>`;
+  }
+  // Sync badges after rendering
+  setTimeout(() => products.forEach(p => updateCardBadge(p.id)), 0);
+}
+
+function cardHTML(p) {
+  const imgTag = p.imagen_url
+    ? `<img src="${p.imagen_url}" alt="${p.nombre}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-placeholder>${ICONS[p.categoria]||"🍾"}</div>'">`
+    : `<div class="card-img-placeholder">${ICONS[p.categoria]||"🍾"}</div>`;
+  return `
+    <div class="card" onclick="openDetail('${p.id}')">
+      <span class="badge-category">${p.categoria}</span>
+      <div class="card-img-wrap">${imgTag}</div>
+      <div class="card-body">
+        <div class="card-name">${p.nombre}</div>
+        <div class="card-sub">${p.bodega||""} ${p.ano?"· "+p.ano:""}</div>
+        <div class="card-bottom">
+          <span class="card-price">${formatPrice(p.precio)}</span>
+          <span class="card-qty-badge" id="addbtn_${p.id}" style="display:none;background:#27ae60;color:#fff;border-radius:50%;width:26px;height:26px;font-size:.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;"></span>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// DETAIL MODAL
+// ============================================================
+function openDetail(id) {
+  currentDetail = products.find(p=>p.id==id);
+  if(!currentDetail) return;
+  const p = currentDetail;
+  const imgTag = p.imagen_url
+    ? `<div class="sheet-img-wrap"><img class="sheet-img" src="${p.imagen_url}" alt="${p.nombre}" onerror="this.parentElement.innerHTML='<div class=sheet-img-placeholder>${ICONS[p.categoria]||"🍾"}</div>'"></div>`
+    : `<div class="sheet-img-placeholder">${ICONS[p.categoria]||"🍾"}</div>`;
+  document.getElementById("sheetContent").innerHTML = `
+    ${imgTag}
+    <div class="sheet-body">
+      <div class="sheet-category">${p.categoria} ${p.origen?"· "+p.origen:""}</div>
+      <div class="sheet-name">${p.nombre}</div>
+      <div class="sheet-meta">
+        ${p.bodega?`<span class="meta-tag">🏠 ${p.bodega}</span>`:""}
+        ${p.ano?`<span class="meta-tag">📅 ${p.ano}</span>`:""}
+        ${p.origen?`<span class="meta-tag">📍 ${p.origen}</span>`:""}
+      </div>
+      <div class="sheet-desc">${p.descripcion||""}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+        <div class="sheet-price" style="margin-bottom:0">${formatPrice(p.precio)}</div>
+        <div style="display:flex;align-items:center;gap:.6rem;">
+          <button onclick="changeDetailQty(-1)" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--border2);background:none;color:var(--accent);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+          <span id="detailQty" style="font-size:1.1rem;min-width:1.5rem;text-align:center;font-weight:600;color:var(--dark);">0</span>
+          <button onclick="changeDetailQty(1)" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--border2);background:none;color:var(--accent);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+        </div>
+      </div>
+      <button class="add-to-cart-btn" onclick="addDetailToCart()"><span style="font-size:1.3rem">🛒</span> Añadir a la cesta</button>
+    </div>`;
+  // Set qty to current cart qty if product already in cart
+  const existingItem = cart.find(i => i.id == id);
+  const currentQty = existingItem ? existingItem.qty : 0;
+  const qtyEl = document.getElementById("detailQty");
+  if (qtyEl) qtyEl.textContent = currentQty;
+
+  document.getElementById("detailOverlay").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function changeDetailQty(d) {
+  const el = document.getElementById("detailQty");
+  const v = Math.max(0, parseInt(el.textContent)+d);
+  el.textContent = v;
+}
+function closeDetail() {
+  document.getElementById("detailOverlay").classList.remove("open");
+  document.body.style.overflow = "";
+}
+function addDetailToCart() {
+  const qtyEl = document.getElementById("detailQty");
+  const qty = qtyEl ? parseInt(qtyEl.textContent) || 0 : 0;
+  if (qty === 0) { showToast("Selecciona al menos 1 unidad"); return; }
+  // El contador del detalle ya muestra la cantidad TOTAL deseada,
+  // así que fijamos esa cantidad en la cesta en vez de sumarla.
+  setCartQty(currentDetail.id, qty);
+  closeDetail();
+}
+function quickAdd(id) {
+  addToCart(id, 1);
+  const item = cart.find(i => i.id==id);
+  if (item) showToast(`En cesta: ${item.qty} ud.`);
+}
+
+// ============================================================
+// CART LOGIC
+// ============================================================
+function addToCart(id, qty=1) {
+  const p = products.find(p=>p.id==id);
+  if(!p) return;
+  const existing = cart.find(i=>i.id==id);
+  if(existing) existing.qty += qty;
+  else cart.push({ id:p.id, nombre:p.nombre, precio:parsePrice(p.precio), imagen:p.imagen_url||"", qty });
+  saveCart();
+  updateCartUI();
+  updateCardBadge(id);
+}
+
+// Fija la cantidad ABSOLUTA de un producto en la cesta (no suma).
+// Si la cantidad es 0, lo quita de la cesta.
+function setCartQty(id, qty) {
+  const p = products.find(p=>p.id==id);
+  if(!p) return;
+  qty = Math.max(0, parseInt(qty) || 0);
+  const existing = cart.find(i=>i.id==id);
+  if(qty === 0) {
+    cart = cart.filter(i=>i.id!=id);
+  } else if(existing) {
+    existing.qty = qty;
+  } else {
+    cart.push({ id:p.id, nombre:p.nombre, precio:parsePrice(p.precio), imagen:p.imagen_url||"", qty });
+  }
+  saveCart();
+  updateCartUI();
+  updateCardBadge(id);
+}
+function updateCardBadge(id) {
+  const item = cart.find(i=>i.id==id);
+  const badge = document.getElementById("addbtn_"+id);
+  if (badge) {
+    if (item && item.qty > 0) {
+      badge.textContent = item.qty;
+      badge.style.display = "flex";
+    } else {
+      badge.style.display = "none";
+      badge.textContent = "";
+    }
+  }
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(i=>i.id!=id);
+  saveCart();
+  updateCartUI();
+  renderCartItems();
+  updateCardBadge(id);
+}
+
+function changeCartQty(id, d) {
+  const item = cart.find(i=>i.id==id);
+  if(!item) return;
+  item.qty = Math.max(1, item.qty+d);
+  saveCart();
+  updateCartUI();
+  renderCartItems();
+}
+
+function cartTotal() {
+  return cart.reduce((s,i)=>s+(i.precio*i.qty),0);
+}
+
+function saveCart() { try { localStorage.setItem("cart",JSON.stringify(cart)); } catch(e){} }
+function loadCart() { try { const s=localStorage.getItem("cart"); if(s) cart=JSON.parse(s); } catch(e){} updateCartUI(); }
+
+function updateCartUI() {
+  const count = cart.reduce((s,i)=>s+i.qty,0);
+  const badge = document.getElementById("cartBadge");
+  badge.textContent = count;
+  badge.classList.toggle("visible", count>0);
+  document.getElementById("cartTotal").textContent = formatPrice(cartTotal());
+  document.getElementById("checkoutBtn").disabled = cart.length===0;
+}
+
+function renderCartItems() {
+  const el = document.getElementById("cartItems");
+  // Sync all badges
+  products.forEach(p => updateCardBadge(p.id));
+  if (!cart.length) {
+    el.innerHTML = `<div class="cart-empty"><div class="icon">🛒</div><p>Tu cesta está vacía</p></div>`;
+    return;
+  }
+  el.innerHTML = cart.map(i=>`
+    <div class="cart-item">
+      ${i.imagen?`<img class="ci-img" src="${i.imagen}" alt="${i.nombre}" onerror="this.style.display='none'">`:`<div class="ci-img" style="display:flex;align-items:center;justify-content:center;font-size:1.5rem;opacity:.4;">🍾</div>`}
+      <div class="ci-info">
+        <div class="ci-name">${i.nombre}</div>
+        <div class="ci-price">${formatPrice(i.precio * i.qty)}</div>
+      </div>
+      <div class="ci-qty">
+        <button class="ci-qbtn" onclick="changeCartQty('${i.id}',-1)">−</button>
+        <span class="ci-qval">${i.qty}</span>
+        <button class="ci-qbtn" onclick="changeCartQty('${i.id}',1)">+</button>
+        <button class="ci-qbtn" onclick="removeFromCart('${i.id}')" style="border-color:rgba(226,75,74,.4);color:#e24b4a;">✕</button>
+      </div>
+    </div>`).join("");
+}
+
+function openCart() {
+  renderCartItems();
+  document.getElementById("cartOverlay").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function closeCart() {
+  document.getElementById("cartOverlay").classList.remove("open");
+  document.body.style.overflow = "";
+  // Sync all badges with current cart state
+  products.forEach(p => updateCardBadge(p.id));
+}
+
+// ============================================================
+// CHECKOUT
+// ============================================================
+function openCheckout() {
+  closeCart();
+  renderOrderSummary();
+  document.getElementById("checkoutOverlay").classList.add("open");
+  document.getElementById("checkoutForm").style.display = "block";
+  document.getElementById("successScreen").classList.remove("show");
+  window.scrollTo(0,0);
+}
+function closeCheckout() {
+  document.getElementById("checkoutOverlay").classList.remove("open");
+}
+
+function renderOrderSummary() {
+  // Auto fill nombre from logged user
+  const nombreEl = document.getElementById("fNombre");
+  if (nombreEl && currentUser) nombreEl.value = currentUser.nombre || currentUser.usuario;
+  const el = document.getElementById("orderSummary");
+  el.innerHTML = `<h3>Resumen del pedido</h3>` +
+    cart.map(i=>`<div class="os-item"><span>${i.nombre} × ${i.qty}</span><span>${formatPrice(i.precio*i.qty)}</span></div>`).join("") +
+    `<div class="os-total"><span>Total</span><span>${formatPrice(cartTotal())}</span></div>`;
+}
+
+async function submitOrder() {
+  // Validate
+  const fields = [
+    ["fNombre","eNombre", v=>v.trim().length>1],
+    ["fEmail","eEmail", v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)],
+  ];
+  let ok = true;
+  fields.forEach(([inp,err,fn])=>{
+    const v = document.getElementById(inp).value;
+    const valid = fn(v);
+    document.getElementById(err).style.display = valid?"none":"block";
+    if(!valid) ok=false;
+  });
+  if(!ok) return;
+
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Enviando pedido...';
+
+  const orderData = {
+    nombre: document.getElementById("fNombre").value,
+    nombre_sheet: currentUser ? currentUser.nombre : document.getElementById("fNombre").value,
+    email: document.getElementById("fEmail").value,
+    telefono: document.getElementById("fTelefono").value,
+    direccion: document.getElementById("fDireccion").value,
+    cp: document.getElementById("fCP").value,
+    ciudad: document.getElementById("fCiudad").value,
+    notas: document.getElementById("fNotas").value,
+    items: cart,
+    total: cartTotal(),
+    fecha: new Date().toLocaleString("es-ES"),
+    orden_id: "PED-" + Date.now().toString(36).toUpperCase()
+  };
+
+  try {
+    await Promise.all([
+      sendEmailCliente(orderData),
+      sendEmailTienda(orderData),
+      saveOrderToSheets(orderData)
+    ]);
+    cart = [];
+    saveCart();
+    updateCartUI();
+    document.querySelectorAll(".card-qty-badge").forEach(b => {
+      b.style.display = "none";
+      b.textContent = "";
+    });
+    document.getElementById("checkoutForm").style.display = "none";
+    document.getElementById("successScreen").classList.add("show");
+    const emailEl = document.getElementById("successEmail");
+    if (emailEl) emailEl.textContent = orderData.email;
+  } catch(e) {
+    console.error("Error enviando pedido:", e);
+    // Mostrar error pero continuar
+    alert("Hubo un problema técnico. Por favor contacta con la tienda directamente.");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = "Confirmar pedido →";
+  }
+}
+
+function sendEmailCliente(d) {
+  const itemsText = d.items.map(i=>`${i.nombre} × ${i.qty} — ${formatPrice(i.precio*i.qty)}`).join("\n");
+  return emailjs.send(CONFIG.emailjs_service_id, CONFIG.emailjs_template_cliente, {
+    to_email: d.email,
+    to_name: d.nombre,
+    cliente_email: d.email,
+    cliente_nombre: d.nombre,
+    orden_id: d.orden_id,
+    title: d.orden_id,
+    items_text: itemsText,
+    total: formatPrice(d.total),
+    direccion: `${d.direccion}, ${d.cp} ${d.ciudad}`,
+    fecha: d.fecha,
+    shop_name: CONFIG.shop_name,
+    owner_email: CONFIG.owner_email
+  });
+}
+
+function sendEmailTienda(d) {
+  const itemsText2 = d.items.map(i=>`${i.nombre} × ${i.qty} — ${formatPrice(i.precio*i.qty)}`).join("\n");
+  return emailjs.send(CONFIG.emailjs_service_id, CONFIG.emailjs_template_tienda, {
+    to_email: CONFIG.owner_email,
+    name: d.nombre,
+    message: itemsText2,
+    cliente_nombre: d.nombre_sheet || d.nombre,
+    cliente_email: d.email,
+    cliente_telefono: d.telefono||"—",
+    orden_id: d.orden_id,
+    items_text: itemsText2,
+    total: formatPrice(d.total),
+    direccion: `${d.direccion}, ${d.cp} ${d.ciudad}`,
+    notas: d.notas||"—",
+    fecha: d.fecha
+  });
+}
+
+async function saveOrderToSheets(d) {
+  if(!CONFIG.google_script_url) return;
+  try {
+    const url = CONFIG.google_script_url + "?action=saveOrder&order=" + encodeURIComponent(JSON.stringify(d));
+    await fetch(url, { method:"GET", mode:"no-cors" });
+  } catch(e) { console.warn("No se pudo guardar en Sheets:", e); }
+}
+
+function resetAll() {
+  document.getElementById("checkoutOverlay").classList.remove("open");
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function parsePrice(n) {
+  if (typeof n === 'number') return n;
+  return parseFloat(String(n).replace(/[€\s]/g,'').replace(',','.')) || 0;
+}
+function formatPrice(n) {
+  return new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR"}).format(parsePrice(n));
+}
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2200);
+}
+
+// ============================================================
+// PWA SERVICE WORKER
+// ============================================================
+if("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+
+// Inicializar EmailJS
+if(CONFIG.emailjs_public_key) {
+  emailjs.init({ publicKey: CONFIG.emailjs_public_key });
+}
+
+// Swipe to close sheets
+let startY = 0;
+document.getElementById("detailSheet").addEventListener("touchstart", e=>{ startY=e.touches[0].clientY; }, {passive:true});
+document.getElementById("detailSheet").addEventListener("touchend", e=>{
+  if(e.changedTouches[0].clientY - startY > 80) closeDetail();
+}, {passive:true});
+
+
+
+// ============================================================
+// HISTORIAL DE PEDIDOS
+// ============================================================
+async function openHistorial() {
+  document.getElementById("userDropdown").classList.remove("open");
+  document.getElementById("historialOverlay").classList.add("open");
+  document.getElementById("historialSub").textContent = currentUser ? currentUser.nombre : "";
+  document.getElementById("historialContent").innerHTML = '<div class="historial-loading">⏳ Cargando pedidos...</div>';
+  window.scrollTo(0,0);
+  try {
+    const url = CONFIG.google_script_url + "?action=getOrders&usuario=" + encodeURIComponent(currentUser.usuario);
+    const res = await fetch(url);
+    const orders = await res.json();
+    renderHistorial(orders);
+  } catch(e) {
+    document.getElementById("historialContent").innerHTML = '<div class="historial-empty">❌ Error al cargar los pedidos</div>';
+  }
+}
+
+function closeHistorial() {
+  document.getElementById("historialOverlay").classList.remove("open");
+}
+
+function renderHistorial(orders) {
+  const el = document.getElementById("historialContent");
+  if (!orders || !orders.length) {
+    el.innerHTML = '<div class="historial-empty">🛒 Aún no tienes pedidos</div>';
+    return;
+  }
+  el.innerHTML = orders.map(o => `
+    <div class="pedido-card">
+      <div class="pedido-header">
+        <div>
+          <div class="pedido-id">${o.orden_id}</div>
+          <div class="pedido-fecha">${o.fecha}</div>
+        </div>
+        <span class="pedido-estado ${(o.estado||'').toLowerCase().includes('pendiente') ? 'pendiente' : (o.estado||'').toLowerCase().includes('servid') ? 'servido' : 'otro'}">${o.estado || "Pendiente de servir"}</span>
+      </div>
+      ${o.items.map(i => `
+        <div class="pedido-item">
+          <span>${i.producto} × ${i.cantidad}</span>
+          <span>${parseFloat(i.subtotal).toFixed(2)} €</span>
+        </div>
+      `).join("")}
+      <div class="pedido-total">
+        <span>Total</span>
+        <span>${o.total ? parseFloat(o.total).toFixed(2) + " €" : "—"}</span>
+      </div>
+    </div>
+  `).join("");
+}
+// ============================================================
+// LOGIN
+// ============================================================
+let currentUser = null;
+
+
+function togglePwd(fieldId, btn) {
+  const input = document.getElementById(fieldId);
+  if (input.type === "password") {
+    input.type = "text";
+    btn.textContent = "🙈";
+  } else {
+    input.type = "password";
+    btn.textContent = "👁";
+  }
+}
+function checkSession() {
+  try {
+    const s = localStorage.getItem("rb_user");
+    if (s) {
+      currentUser = JSON.parse(s);
+      document.getElementById("userName").textContent = currentUser.nombre || currentUser.usuario;
+      document.getElementById("loginOverlay").classList.add("hidden");
+      loadProducts();
+      return;
+    }
+  } catch(e) {}
+  // No session - show login
+  document.getElementById("loginOverlay").classList.remove("hidden");
+}
+
+async function doLogin() {
+  const usuario = document.getElementById("loginUser").value.trim();
+  const password = document.getElementById("loginPass").value;
+  const errEl = document.getElementById("loginError");
+  const spinner = document.getElementById("loginSpinner");
+  errEl.style.display = "none";
+  if (!usuario || !password) { errEl.textContent = "Introduce usuario y contraseña"; errEl.style.display = "block"; return; }
+  spinner.style.display = "block";
+  try {
+    const url = CONFIG.google_script_url + "?action=login&usuario=" + encodeURIComponent(usuario) + "&password=" + encodeURIComponent(password);
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.ok) {
+      currentUser = { usuario, nombre: data.nombre };
+      localStorage.setItem("rb_user", JSON.stringify(currentUser));
+      document.getElementById("userName").textContent = data.nombre || usuario;
+      document.getElementById("loginOverlay").classList.add("hidden");
+      loadProducts();
+    } else {
+      errEl.textContent = data.error || "Usuario o contraseña incorrectos";
+      errEl.style.display = "block";
+    }
+  } catch(e) {
+    errEl.textContent = "Error de conexión. Inténtalo de nuevo.";
+    errEl.style.display = "block";
+  }
+  spinner.style.display = "none";
+}
+
+function doLogout() {
+  localStorage.removeItem("rb_user");
+  currentUser = null;
+  location.reload();
+}
+
+function toggleUserMenu() {
+  document.getElementById("userDropdown").classList.toggle("open");
+}
+document.addEventListener("click", e => {
+  if (!e.target.closest(".user-menu")) document.getElementById("userDropdown").classList.remove("open");
+});
+
+function openChangePwd() {
+  document.getElementById("userDropdown").classList.remove("open");
+  document.getElementById("chpwdOld").value = "";
+  document.getElementById("chpwdNew").value = "";
+  document.getElementById("chpwdNew2").value = "";
+  document.getElementById("chpwdError").style.display = "none";
+  document.getElementById("chpwdOk").style.display = "none";
+  document.getElementById("chpwdOverlay").classList.add("open");
+}
+function closeChangePwd() {
+  document.getElementById("chpwdOverlay").classList.remove("open");
+}
+
+async function submitChangePassword() {
+  const oldPwd = document.getElementById("chpwdOld").value;
+  const newPwd = document.getElementById("chpwdNew").value;
+  const newPwd2 = document.getElementById("chpwdNew2").value;
+  const errEl = document.getElementById("chpwdError");
+  const okEl = document.getElementById("chpwdOk");
+  errEl.style.display = "none"; okEl.style.display = "none";
+  if (!oldPwd || !newPwd) { errEl.textContent = "Rellena todos los campos"; errEl.style.display = "block"; return; }
+  if (newPwd !== newPwd2) { errEl.textContent = "Las contraseñas nuevas no coinciden"; errEl.style.display = "block"; return; }
+  if (newPwd.length < 4) { errEl.textContent = "La contraseña debe tener al menos 4 caracteres"; errEl.style.display = "block"; return; }
+  try {
+    const url = CONFIG.google_script_url + "?action=changePassword&usuario=" + encodeURIComponent(currentUser.usuario) + "&oldPassword=" + encodeURIComponent(oldPwd) + "&newPassword=" + encodeURIComponent(newPwd);
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.ok) { okEl.style.display = "block"; setTimeout(closeChangePwd, 1500); }
+    else { errEl.textContent = data.error || "Error al cambiar contraseña"; errEl.style.display = "block"; }
+  } catch(e) { errEl.textContent = "Error de conexión"; errEl.style.display = "block"; }
+}
+
+// Enter key on login
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("loginPass").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
+  document.getElementById("loginUser").addEventListener("keydown", e => { if(e.key==="Enter") document.getElementById("loginPass").focus(); });
+});
+
+
+// ============================================================
+// ANDROID BACK BUTTON HANDLER
+// ============================================================
+window.addEventListener("popstate", function(e) {
+  if (document.getElementById("detailOverlay").classList.contains("open")) {
+    closeDetail();
+    history.pushState(null, "", window.location.href);
+    return;
+  }
+  if (document.getElementById("cartOverlay").classList.contains("open")) {
+    closeCart();
+    history.pushState(null, "", window.location.href);
+    return;
+  }
+  if (document.getElementById("checkoutOverlay").classList.contains("open")) {
+    closeCheckout();
+    history.pushState(null, "", window.location.href);
+    return;
+  }
+  if (document.getElementById("historialOverlay").classList.contains("open")) {
+    closeHistorial();
+    history.pushState(null, "", window.location.href);
+    return;
+  }
+  if (document.getElementById("chpwdOverlay").classList.contains("open")) {
+    closeChangePwd();
+    history.pushState(null, "", window.location.href);
+    return;
+  }
+  history.pushState(null, "", window.location.href);
+});
+
+// Push initial state
+history.pushState(null, "", window.location.href);
+
+
+
+// START
+document.addEventListener("DOMContentLoaded", checkSession);
+</script>
+</div>
+
+<!-- LOGIN -->
+<div class="login-overlay hidden" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">Ramon Bilbao</div>
+    <div class="login-sub">Catálogo Vinos & Espirituosos</div>
+    <input class="login-input" id="loginUser" type="text" placeholder="Usuario" autocomplete="username">
+    <div style="position:relative;">
+    <input class="login-input" id="loginPass" type="password" placeholder="Contraseña" autocomplete="current-password" style="padding-right:3rem;">
+    <button onclick="togglePwd('loginPass',this)" type="button" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:#6e6e73;">👁</button>
+  </div>
+    <button class="login-btn" onclick="doLogin()">Entrar</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-spinner" id="loginSpinner">Verificando...</div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD -->
+<div class="chpwd-overlay" id="chpwdOverlay">
+  <div class="chpwd-box">
+    <h3>🔐 Cambiar contraseña</h3>
+    <div style="position:relative;">
+    <input class="login-input" id="chpwdOld" type="password" placeholder="Contraseña actual" style="padding-right:3rem;">
+    <button onclick="togglePwd('chpwdOld',this)" type="button" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:#6e6e73;">👁</button>
+  </div>
+    <div style="position:relative;">
+    <input class="login-input" id="chpwdNew" type="password" placeholder="Nueva contraseña" style="padding-right:3rem;">
+    <button onclick="togglePwd('chpwdNew',this)" type="button" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:#6e6e73;">👁</button>
+  </div>
+    <input class="login-input" id="chpwdNew2" type="password" placeholder="Repetir nueva contraseña">
+    <button class="login-btn" onclick="submitChangePassword()">Guardar</button>
+    <button onclick="closeChangePwd()" style="width:100%;margin-top:.5rem;padding:.7rem;border:none;background:none;color:#6e6e73;cursor:pointer;font-size:.85rem;">Cancelar</button>
+    <div class="chpwd-error" id="chpwdError"></div>
+    <div class="chpwd-ok" id="chpwdOk">✓ Contraseña cambiada correctamente</div>
+  </div>
+</div>
+
+<!-- HISTORIAL -->
+<div class="historial-overlay" id="historialOverlay">
+  <div class="historial-inner">
+    <button class="back-btn" onclick="closeHistorial()">← Volver al catálogo</button>
+    <h1>📋 Mis pedidos</h1>
+    <p class="sub" id="historialSub"></p>
+    <div id="historialContent">
+      <div class="historial-loading">Cargando pedidos...</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
